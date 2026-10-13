@@ -21,6 +21,11 @@ export class Header {
   }
 
   async openCart() {
+    // After scrolling down the product grid, the header can be out of view.
+    // Scroll back to the top first, as a player would, and check the icon is on screen.
+    await this.page.mouse.wheel(0, -10_000);
+    await this.page.evaluate(() => window.scrollTo(0, 0));
+    await expect(this.cartLink()).toBeInViewport();
     await this.cartLink().click();
     await expect(this.page).toHaveURL(/\/our-games\/cart/);
   }

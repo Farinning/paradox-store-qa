@@ -25,8 +25,7 @@ test('cart contents persist after a page reload', async ({ page }) => {
   const cart = new CartPage(page);
 
   // Arrange: one product in the cart
-  await catalog.open();
-  await catalog.search('stellaris');
+  await catalog.openSearchResults('stellaris');
   await catalog.addBuyableProduct(0);
   await header.expectItemCount(1);
   await header.openCart();

@@ -21,11 +21,28 @@ export class CatalogPage {
       .catch(() => {});
   }
 
+  /**
+   * Types a term in the search box and presses Enter, like a player.
+   * We first wait for the product grid, as a sign the page is ready: if Enter is pressed
+   * before the page's scripts have loaded, the store ignores the search (see BUG-10).
+   */
   async search(term: string) {
+    await expect(this.page.getByText(/Showing \d+ of \d+/)).toBeVisible();
     const searchBox = this.page.getByRole('searchbox', { name: 'Search' });
     await searchBox.fill(term);
     await searchBox.press('Enter');
     await expect(this.page).toHaveURL(new RegExp(`Search=${encodeURIComponent(term)}`));
+  }
+
+  /**
+   * Opens the search results directly by URL, without typing in the search box.
+   * Used to set up tests that are about the cart, not about search,
+   * so that a search problem cannot make a cart test fail.
+   */
+  async openSearchResults(term: string) {
+    await this.page.goto(`/our-games/all-games?Search=${encodeURIComponent(term)}`);
+    await this.dismissCookieBanner();
+    await expect(this.page.getByText(/Showing \d+ of \d+/)).toBeVisible();
   }
 
   /**
