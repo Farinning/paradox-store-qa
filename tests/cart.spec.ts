@@ -1,38 +1,47 @@
 import { test, expect } from '@playwright/test';
+import { CatalogPage } from '../pages/catalog-page';
+import { Header } from '../pages/header';
+import { CartPage } from '../pages/cart-page';
 
 test('search for a product and add it to the cart', async ({ page }) => {
-  test.setTimeout(60_000);
+  const catalog = new CatalogPage(page);
+  const header = new Header(page);
+  const cart = new CartPage(page);
 
-  // 1. Open the catalogue
-  await page.goto('https://www.paradoxinteractive.com/our-games/all-games');
+  await catalog.open();
+  await header.expectItemCount(0);
 
-  // 2. Close the cookie banner if it appears (if not, carry on)
-  await page.getByRole('button', { name: 'Decline' })
-    .click({ timeout: 10_000 })
-    .catch(() => {});
+  await catalog.search('stellaris');
+  await catalog.addBuyableProduct(0);
+  await header.expectItemCount(1);
 
-  // 3. Search for a keyword
-  const search = page.getByRole('searchbox', { name: 'Search' });
-  await search.fill('stellaris');
-  await search.press('Enter');
-  await expect(page).toHaveURL(/Search=stellaris/);
+  await header.openCart();
+  await cart.expectLineItemCount(1);
+});
 
-  // 4. Add the first product that has an "Add to cart" button.
-  //    The button is hidden until the mouse is over the product card,
-  //    so we hover the card first, like a real player would.
-  const firstBuyableCard = page.getByRole('listitem')
-    .filter({ has: page.getByRole('button', { name: 'Add to cart', includeHidden: true }) })
-    .first();
-  await firstBuyableCard.hover();
-  await firstBuyableCard.getByRole('button', { name: 'Add to cart' }).click();
+test('cart contents persist after a page reload', async ({ page }) => {
+  const catalog = new CatalogPage(page);
+  const header = new Header(page);
+  const cart = new CartPage(page);
 
-  // 5. Expected: the header cart shows 1 item
-  const cartLink = page.getByRole('link', { name: 'View cart, 1 item' });
-  await expect(cartLink).toBeVisible({ timeout: 15_000 });
+  // Arrange: one product in the cart
+  await catalog.open();
+  await catalog.search('stellaris');
+  await catalog.addBuyableProduct(0);
+  await header.expectItemCount(1);
+  await header.openCart();
+  await cart.expectLineItemCount(1);
 
-  // 6. Open the cart. Expected: exactly one line item
-  await cartLink.click();
-  await expect(page).toHaveURL(/\/our-games\/cart/);
-  await expect(page.getByRole('button', { name: /Remove .* from cart/ }))
-    .toHaveCount(1, { timeout: 15_000 });
+  // Remember what the cart looks like before the reload
+  const namesBefore = await cart.lineItemNames();
+  const totalBefore = await cart.summaryAmount('Total').innerText();
+
+  // Act
+  await page.reload();
+
+  // Assert: same product, same total, same counter
+  await cart.expectLineItemCount(1);
+  expect(await cart.lineItemNames()).toEqual(namesBefore);
+  await expect(cart.summaryAmount('Total')).toHaveText(totalBefore);
+  await header.expectItemCount(1);
 });
