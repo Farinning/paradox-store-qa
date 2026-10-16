@@ -1,9 +1,11 @@
 {
   "name": "paradox-store-qa",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {},
+  "description": "QA take-home for the Paradox Interactive store: test scenarios, bug reports and Playwright tests",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

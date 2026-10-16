@@ -3,7 +3,7 @@ import { CatalogPage } from '../pages/catalog-page';
 import { Header } from '../pages/header';
 import { CartPage } from '../pages/cart-page';
 
-test('search for a product and add it to the cart', async ({ page }) => {
+test('CAT-05: a product found with search can be added to the cart', async ({ page }) => {
   const catalog = new CatalogPage(page);
   const header = new Header(page);
   const cart = new CartPage(page);
@@ -19,7 +19,7 @@ test('search for a product and add it to the cart', async ({ page }) => {
   await cart.expectLineItemCount(1);
 });
 
-test('cart contents persist after a page reload', async ({ page }) => {
+test('CART-05: cart contents persist after a page reload', async ({ page }) => {
   const catalog = new CatalogPage(page);
   const header = new Header(page);
   const cart = new CartPage(page);
@@ -40,7 +40,10 @@ test('cart contents persist after a page reload', async ({ page }) => {
 
   // Assert: same product, same total, same counter
   await cart.expectLineItemCount(1);
-  expect(await cart.lineItemNames()).toEqual(namesBefore);
+  // Right after a reload the line can briefly show "undefined" instead of the product name,
+  // until the cart data has loaded (the same symptom as the "undefined USD" bug). So we wait for the name,
+  // and the test only fails if it never comes back.
+  await expect.poll(() => cart.lineItemNames()).toEqual(namesBefore);
   await expect(cart.summaryAmount('Total')).toHaveText(totalBefore);
   await header.expectItemCount(1);
 });

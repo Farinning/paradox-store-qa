@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
-  // The live store is slow (see BUG-08), so each test and each check gets more time.
+  // The live store is slow (see the "undefined USD" bug), so each test and each check gets more time.
   timeout: 60_000,
   expect: { timeout: 15_000 },
 

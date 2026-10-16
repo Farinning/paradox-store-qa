@@ -22,10 +22,10 @@ async function openCartWithProducts(page: Page, count: number) {
   return { header, cart };
 }
 
-test('cart summary adds up: subtotal minus discount equals total', async ({ page }) => {
+test('CART-06: cart summary adds up: subtotal minus discount equals total', async ({ page }) => {
   const { cart } = await openCartWithProducts(page, 2);
 
-  // The summary can finish loading a moment after the line items (see BUG-07),
+  // The summary can finish loading a moment after the line items (see the observation about totals in the bug list),
   // so expect.poll re-reads the three amounts until they are consistent, or times out.
   await expect
     .poll(async () => {
@@ -41,7 +41,7 @@ test('cart summary adds up: subtotal minus discount equals total', async ({ page
   await expect(page.getByRole('button', { name: 'Proceed to checkout' })).toBeEnabled();
 });
 
-test('removing items updates the cart, then shows the empty state', async ({ page }) => {
+test('CART-07: removing items updates the cart, then shows the empty state', async ({ page }) => {
   const { header, cart } = await openCartWithProducts(page, 2);
   const namesBefore = await cart.lineItemNames();
   const subtotalBefore = await cart.summaryValue('Subtotal');

@@ -24,7 +24,7 @@ export class CatalogPage {
   /**
    * Types a term in the search box and presses Enter, like a player.
    * We first wait for the product grid, as a sign the page is ready: if Enter is pressed
-   * before the page's scripts have loaded, the store ignores the search (see BUG-10).
+   * before the page's scripts have loaded, the store ignores the search.
    */
   async search(term: string) {
     await expect(this.page.getByText(/Showing \d+ of \d+/)).toBeVisible();
